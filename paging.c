@@ -33,8 +33,16 @@ struct entry page_table[21]; //The page table
 /* output: frame of page to be replaced */
 int nru()
 {
-  
-  
+  int i;
+  int lowest = 0;
+  for(i = 0; i < mem_size; i+=1) {
+    int low = ( page_table[mem[lowest]].R * 2) + page_table[mem[lowest]].M;
+    int curr = page_table[mem[i]].R + page_table[mem[i]].M;
+    if(curr < low) {
+      lowest = i;
+    }
+  }
+  return lowest;
 }
 
 /* ************************************************************* */
@@ -46,16 +54,27 @@ int nru()
    This information will be used later for page replacement */
 void nru_pt_update(int page, int R, int M)
 {
+  page_table[page].R = R;
+  page_table[page].M = M;
   
- 
 }
 /* ********************** aging replacement policy **************** */
 /* input: none */
 /* output: frame of page to be replaced */
 int aging()
 {
+  int lowestIndex = 0;
+  unsigned char lowestCounter = page_table[mem[0]].counter;
+  int i;
+  for(i = 0; i < mem_size; i++) {
+    if(page_table[mem[i]].counter < lowestCounter) {
+      printf("Page with lowest counter is now: %d\n", &lowestIndex);
+      lowestIndex = i;
+      lowestCounter = page_table[mem[i]].counter;
+    }
+  }
   
-  
+  return lowestIndex;
 }
 /* ************************************************************* */
 /* input: page number */
@@ -64,8 +83,20 @@ int aging()
    This information will be used later for page replacement */
 void aging_pt_update(int page)
 {
+  // set the accessed page's R bit to 1
+  page_table[page].R = 1;
 
-  
+  int i;
+  for(i = 0; i < mem_size; i+=1) {
+    printf("Counter value before shifting for %d is %d\n", mem[i], page_table[mem[i]].counter);
+
+    page_table[mem[i]].counter = (page_table[mem[i]].counter >> 1) + (page_table[mem[i]].R * 128);
+    printf("Counter value for %d is %d\n", mem[i], page_table[mem[i]].counter);
+    // if the page wasn't just accessed, reset its R bit to 0
+    if(mem[i] != page) {
+      page_table[mem[i]].R = 0;
+    }
+  }
 }
 /* **************** End of your code *************** */
 /* ************************************************************* */
@@ -220,7 +251,7 @@ int main(int argc, char * argv[])
   while(fscanf(fp,"%d%d", &current, &type) == 2)
   { 
     num_accesses++;
-	frame = mem_check(current);
+	  frame = mem_check(current);
     if(frame == -1)
       page_faults++;
     
