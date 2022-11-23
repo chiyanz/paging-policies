@@ -68,7 +68,7 @@ int aging()
   int i;
   for(i = 0; i < mem_size; i++) {
     if(page_table[mem[i]].counter < lowestCounter) {
-      printf("Page with lowest counter is now: %d\n", &lowestIndex);
+      printf("Page with lowest counter is now: %hhu\n", lowestIndex);
       lowestIndex = i;
       lowestCounter = page_table[mem[i]].counter;
     }
